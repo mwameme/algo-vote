@@ -30,15 +30,13 @@ int compter_ordonne(vector<vector<int>> const& pref, vector<int> ordre, int debu
 	return ordonne; //compte le nombre de pair dans le "bon sens"
 };
 
-/*
-int comparer_listes(vector<vector<int>> const& pref, vector<int> ordre, vector<int> ordre2, int n) { // positif si ordre1 est plus souvent préféré à ordre2 ... 
+
+int comparer_listes(vector<vector<int>> const& pref, vector<int> ordre1, vector<int> ordre2, int n) { // positif si ordre1 est plus souvent préféré à ordre2 ... 
 	int cumul = 0;
 
 	for (int i(0); i < n; ++i)
-		for (int j(0); j < n; ++j) {
-			if (i == j)
-				continue;
-			int test = pref[ordre[i]][ordre2[j]] - pref[ordre2[j]][ordre[i]];
+		for (int j(i+1); j < n; ++j) {
+			int test = pref[ordre1[i]][ordre2[j]] - pref[ordre2[j]][ordre1[i]];
 			if (test > 0)
 				++cumul;
 			else if (test < 0)
@@ -47,7 +45,7 @@ int comparer_listes(vector<vector<int>> const& pref, vector<int> ordre, vector<i
 
 	return cumul;
 }
-*/
+
 
 vector<vector<int>> compresser(vector<vector<int>> const& votes) {
 	int N = votes.size();
@@ -363,8 +361,8 @@ std::pair<std::vector<int>, int> get_max_min(std::vector<std::vector<int>>  pref
 	}
 }
 
-vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon) { //a partir de la liste des votes
-	vector<vector<int>> pref = compresser(tableau);
+vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon,int n) { //a partir de la liste des votes
+	vector<vector<int>> pref = compresser_2(tableau,n);
 	vector<double> resultat = vote(pref, epsilon);
 	vector<int> ordre = ordre_double(resultat);
 	

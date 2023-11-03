@@ -13,9 +13,11 @@ std::vector<int> ordre_alea(int n);
 
 int compter_ordonne(std::vector<std::vector<int>> const& pref, std::vector<int> ordre, int debut);
 
-//int comparer_listes(std::vector<std::vector<int>> const& pref, std::vector<int> ordre, std::vector<int> ordre2, int n);// positif si ordre1 est plus souvent préféré à ordre2 ... 
+int comparer_listes(std::vector<std::vector<int>> const& pref, std::vector<int> ordre, std::vector<int> ordre2, int n);// positif si ordre1 est plus souvent préféré à ordre2 ... 
 
 std::vector<std::vector<int>> compresser(std::vector<std::vector<int>> const& votes);
+
+std::vector<std::vector<int>> compresser_2(std::vector<std::vector<int>> const& votes, int n);
 
 std::vector<double> vote(std::vector<std::vector<int>> const& pref, double epsilon); //une seule fois 
 
@@ -33,7 +35,7 @@ std::vector<int> get_min(std::vector<std::vector<int>> votes, double epsilon); /
 
 std::pair<std::vector<int>, int> get_max_min(std::vector<std::vector<int>> pref, double epsilon); //enleve le min (de get_min), itéré, jusqu'à obtenir le max.
 
-std::vector<std::pair<int, double>> algo_entier(std::vector<std::vector<int>> tableau, double epsilon); //a partir de la liste des votes
+std::vector<std::pair<int, double>> algo_entier(std::vector<std::vector<int>> tableau, double epsilon,int n); //a partir de la liste des votes
 
 
 //ordre 

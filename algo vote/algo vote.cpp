@@ -2,7 +2,7 @@
 //
 
 #include <iostream>
-#include "vote.hpp"
+#include "vote2.hpp"
 #include <vector>
 
 #include <ctime> // Obligatoire
@@ -18,19 +18,23 @@ int main()
 	debut:
 	int N = 20;
 	int n = 15;
-	double epsilon = 1.;
+	double epsilon = 1.5;
 
 	vector<vector<int>> gen;
 	for (int i(0); i < N; ++i)
 		gen.push_back(ordre_alea(n));
-	vector<vector<int>> pref = compresser(gen);
+	vector<vector<int>> pref = compresser_2(gen,n);
 
-	std::vector<int> result_ordre = boucle_max_min(pref, epsilon);
-	std::vector<int> result_boucle = ordre_double(vote(pref, epsilon));
+	vector<pair<int,double>> resultat_algo = algo_entier(gen, epsilon,n);
+	vector<int> resultat_algo_liste;
+	resultat_algo_liste.reserve(resultat_algo.size());
+	for (int i(0); i < resultat_algo_liste.size(); ++i)
+		resultat_algo_liste.push_back(get<0>(resultat_algo[i]));
+	vector<int> resultat_0 = ordre_double(vote(pref, epsilon));
 
-	cout << "compter ordonne : ordre  : " << compter_ordonne(pref, result_ordre,8) << endl;
-	cout << "compter ordonne : boucle : " << compter_ordonne(pref, result_boucle,8) << endl;
-	cout << "nombre preferences ordre>boucle : " << comparer_listes(pref, result_ordre, result_boucle, 4) << endl;
+	cout << "compter ordonne : rec    : " << compter_ordonne(pref, resultat_algo_liste,8) << endl;
+	cout << "compter ordonne : 0      : " << compter_ordonne(pref, resultat_0,8) << endl;
+	cout << "nombre preferences rec>0 : " << comparer_listes(pref, resultat_algo_liste, resultat_0, 8) << endl;
 	long question;
 	cin >> question;
 	goto debut;

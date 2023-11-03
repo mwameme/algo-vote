@@ -129,12 +129,10 @@
   <ItemGroup>
     <ClCompile Include="algo vote.cpp" />
     <ClCompile Include="matrice.cpp" />
-    <ClCompile Include="vote.cpp" />
     <ClCompile Include="vote2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="matrice.hpp" />
-    <ClInclude Include="vote.hpp" />
     <ClInclude Include="vote2.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -37,26 +37,20 @@ std::vector<std::pair<int, double>> algo_entier(std::vector<std::vector<int>> ta
 
 
 //ordre 
-template<class T> class couple_index {
-public:
-	couple_index() {};
-
-	int index;
-	T element;
-};
 
 template<class T> std::vector<int> ordre(std::vector<T> liste_, std::function<bool(T, T)> const& f) {
 	int n = liste_.size();
-	std::vector<couple_index<T>> liste(n);
+	std::vector<std::pair<int,T>> liste;
+	liste.reserve(n);
 	for (int i(0); i < n; ++i) {
-		liste[i].element = liste_[i];
-		liste[i].index = i;
+		liste.push_back( std::make_pair(i, liste_[i]));
 	}
 
-	std::sort(liste.begin(), liste.end(), [&](couple_index<T> gauche, couple_index<T> droite) {return f(gauche.element, droite.element); });
-	std::vector<int> resultat(n);
+	std::sort(liste.begin(), liste.end(), [&](std::pair<int,double> gauche, std::pair<int,double> droite) {return f(std::get<1>(gauche), std::get<1>(droite)); });
+	std::vector<int> resultat;
+	resultat.reserve(n);
 	for (int i(0); i < n; ++i)
-		resultat[i] = liste[i].index;
+		resultat.push_back(std::get<0>(liste[i]));
 
 	return resultat;
 };

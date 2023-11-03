@@ -74,24 +74,24 @@ vector<vector<int>> compresser_2(vector<vector<int>> const& votes,int n) {//les 
 	vector<vector<int>> preferences(n, vector<int>(n, 0));
 
 	for (int i(0); i < N; ++i) { //on parcourt la liste de votes
-		vector<bool> vec_fait(false, n);
+		vector<bool> vec_fait(n, false);
 		for (int j(0); j < votes[i].size(); ++j) {
 			vec_fait[votes[i][j]] = true;
 			for (int k(j + 1); k < votes[i].size(); ++k) //on regarde j préféré à k. j < k
 				preferences[votes[i][j]][votes[i][k]] += 2;
 		}
+		vector<int> vec_non;
+		for (int j(0); j < n; ++j)
+			if (!vec_fait[j])
+				vec_non.push_back(j);
+
 		for (int j(0); j < votes[i].size(); ++j)
-			for (int k(0); k < n; ++k)
-				if (!vec_fait[k])
-					preferences[votes[i][j]][k] += 2;
-		for (int j(0); j < n; ++j) {
-			if (vec_fait[j])
-				continue;
-			for (int k(j + 1); k < n; ++k) {
-				if (vec_fait[k])
-					continue;
-				preferences[j][k] += 1;
-				preferences[k][j] += 1;
+			for (int k(0); k < vec_non.size(); ++k)
+				preferences[votes[i][j]][vec_non[k]] += 2;
+		for (int j(0); j < vec_non.size(); ++j) {
+			for (int k(j + 1); k < vec_non.size(); ++k) {
+				preferences[vec_non[j]][vec_non[k]] += 1;
+				preferences[vec_non[k]][vec_non[j]] += 1;
 			}
 		}
 	}
@@ -103,13 +103,13 @@ vector<vector<int>> compresser_2(vector<vector<int>> const& votes,int n) {//les 
 
 vector<double> vote(vector<vector<int>> const& pref, double epsilon_) {//chaine de markov ... passe d'un tableau de préférence, à une liste ordonnée
 	int n = pref.size();
+	if (n == 0)
+		return vector<double>(0);
 
 	vector<vector<double>> P(n, vector<double>(n, 0)); // matrice de transition
 	int N = 0;
-	for (int i(0); i < n; ++i) {
-		N += pref[0][i];
-		N += pref[i][0];
-	}
+	N += pref[0][1];
+	N += pref[1][0];
 
 
 	double inv_n = 1. / ((double)n);

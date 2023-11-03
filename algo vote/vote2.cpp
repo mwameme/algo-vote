@@ -203,15 +203,17 @@ void enlever_liste(vector<vector<int>>& pref, vector<int> const& liste) {//liste
 	for (int i(liste.size() - 1); i >= 0; --i)
 		for (int j(0); j < pref.size(); ++j)
 			pref[j].erase(pref[j].begin() + liste[i]);
-
+	return;
 	//	return pref;
 }
+
+
 
 void decaler_ordre(vector<int>& ordre, vector<int> const& liste) { //liste croissante. la liste "ordre" est modifiee. On avait enleve "liste" du tableau de preferences.
 	for (int i(0); i < liste.size(); ++i)
 		for (int j(0); j < ordre.size(); ++j)
 			ordre[j] = (ordre[j] >= liste[i] ? ordre[j] + 1 : ordre[j]);
-
+	return;
 	//	return ordre;
 }
 
@@ -240,120 +242,150 @@ vector<int> get_min(vector<vector<int>> pref, double epsilon) {
 	decaler_ordre(i_min, i_max);
 
 	return i_min;
+
+	/*
+	vector<pair<int,double>> liste_conjointe;
+	liste_conjointe.reserve(resultat.size());
+	for(int i(0);i<liste_conjointe.size();++i)
+		liste_conjointe.push_back(make_pair(i,-resultat[i]));
+	vector<int> derniers = get_premiers(liste_conjointe);
+	return derniers;
+	*/
 }
 
 
 std::pair<std::vector<int>, int> get_max_min(std::vector<std::vector<int>>  pref, double epsilon) { //appeler epsilon = 2.
-	//0 : a buggé
-	//1 : partiel ...
-	//2 : tout est bon : liste entiere
+	//0 : a buggé. Renvoit la liste 
+	//1 : partiel ... renvoit la liste partielle des max
+	//2 : tout est bon : liste entiere des max
 
 	int n = pref.size();
 	if (n == 1)
 		return std::make_pair(vector<int>(1, 0), 2);
-
-	std::vector<int> i_min = get_min(pref, epsilon);
-
-	vector<double> resultat1 = vote(pref, epsilon);
-	vector<int> ordre1 = ordre_double(vote(pref, epsilon));
-
-	if (i_min.size() == n) {
-		return std::make_pair(i_min, 0);
-	}
-
+	vector<int> save_max; //liste partielle des max.
 	vector<vector<int>> pref_save = pref;
-	enlever_liste(pref, i_min);
-	bool is_flag_1 = false;
-	std::vector<int> liste_max_partielle;
+	vector<double> resultat_save = vote(pref_save, epsilon);
 
-label:
+	while (true) {//boucle pour le cas flag_1 (augmente progressivement la liste save_max)
+		if (save_max.size() == n)
+			return make_pair(save_max, 2);
+		pref = pref_save;
+		vector<int> save_max_trie = save_max;
+		sort(save_max_trie.begin(), save_max_trie.end());
+		enlever_liste(pref, save_max_trie);
 
-	vector<int> resultat;
-	int flag;
-	std::tie(resultat, flag) = get_max_min(pref, epsilon);
-	decaler_ordre(resultat, i_min);
+		vector<int> i_min = get_min(pref, epsilon);
+		vector<double> resultat1 = vote(pref, epsilon);
 
-	if (flag == 0) { //rien n'a fonctionné ... on regarde si avant d'avoir enlevé le i_min on peut trouver un i_max ... et on ré-essaye
-		//trier new_resultat selon pref_save (=resultat1), car pref ne marche pas.
-		if (is_flag_1)
-			return make_pair(liste_max_partielle, 1);
+		if (i_min.size() == (n - save_max.size()) ) { //n'arrive pas à séparer grâce à i_min ...
+			decaler_ordre(i_min, save_max_trie);
+			if (save_max.size() == 0) {
+				return std::make_pair(i_min, 0);
+			}
+			//si i_min vaut 0 ... simple
+			if (i_min.size() == 1) {
+				save_max.push_back(i_min[0]);
+				return std::make_pair(save_max, 2);
+			}
+			//arrive-t-on à séparer avec pref_save ?
+			std::vector<pair<int, double>> liste_conjointe;
+			liste_conjointe.reserve(i_min.size());
+			for (int i(0); i < i_min.size(); ++i)
+				liste_conjointe.push_back(std::make_pair(i_min[i], resultat_save[i_min[i]]));
+			std::vector<int> premiers = get_premiers(liste_conjointe); //dans la liste avec min et sans save_max.
 
-		std::vector<pair<int, double>> liste_conjointe;
-		liste_conjointe.reserve(resultat.size());
-		for(int i(0);i<resultat.size();++i)
-			liste_conjointe.push_back(std::make_pair(resultat[i], resultat1[resultat[i]]));
-		sort(liste_conjointe.begin(), liste_conjointe.end(), [](pair<int, double> a, pair<int, double> b) {return std::get<1>(a) > std::get<1>(b); });
-		std::vector<int> premiers = get_premiers(liste_conjointe);
-		if (premiers.size() >= 2) {
-			return make_pair( premiers, 0);
+			if (premiers.size() >= 2)
+				return make_pair(save_max, 1);
+			save_max.push_back(premiers[0]);
+			continue;
 		}
-		int i_max = premiers[0];
-
 		
-		//on a sélectionné le premier : c'était quand même possible. On essaye d'obtenir ce qu'il reste des premiers : on appelle la même fonction get_max_min() qui s'occupe seulement des premiers.
-		enlever_liste(pref_save, { i_max });
+		enlever_liste(pref, i_min);
 
-		vector<int> resultat2;
-		int flag2;
-		std::tie(resultat2, flag2) = get_max_min(pref_save, epsilon);
+		vector<int> resultat;
+		int flag;
+		std::tie(resultat, flag) = get_max_min(pref, epsilon);
+		decaler_ordre(resultat, i_min);
 
-		if (flag2 == 0)
-			return std::make_pair(std::vector<int>(1, i_max), 1);
-		if (flag2 == 1) {
-			decaler_ordre(resultat2, { i_max });
-			resultat2.insert(resultat2.begin(), i_max);
+		if (flag == 0) { //rien n'a fonctionné ... on regarde si avant d'avoir enlevé le i_min on peut trouver un i_max ... et on ré-essaye
+			//trier new_resultat selon pref_save (=resultat1), car pref ne marche pas.
+			std::vector<pair<int, double>> liste_conjointe;
+			liste_conjointe.reserve(resultat.size());
+			for (int i(0); i < resultat.size(); ++i)
+				liste_conjointe.push_back(std::make_pair(resultat[i], resultat1[resultat[i]]));
+			std::vector<int> premiers = get_premiers(liste_conjointe); //dans la liste avec min et sans save_max.
 
-			if (resultat2.size() == pref_save.size() + 1) {
-				//				resultat2.insert(resultat2.end(), i_min.begin(), i_min.end());
-				return make_pair(resultat2, 2);
+			if (premiers.size() >= 2) {
+				if (save_max.size() == 0) {
+//					vector<int> positions(pref_save.size(), 0);
+//					for (int i(0); i < positions.size(); ++i)
+//						positions[i] = i;
+					return make_pair(premiers, 0);
+				}
+				//n'arrive pas à séparer avant d'enlever i_min .... Donc on essaye de séparer avant d'enlever save_max. Dans le cas save_max !=0
+				decaler_ordre(premiers, save_max_trie);
+				std::vector<pair<int, double>> liste_conjointe_2;
+				liste_conjointe_2.reserve(premiers.size());
+				for (int i(0); i < premiers.size(); ++i)
+					liste_conjointe_2.push_back(std::make_pair(premiers[i], resultat_save[premiers[i]]));
+				vector<int> premiers2 = get_premiers(liste_conjointe_2);
+
+				if (premiers2.size() >= 2) //on n'arrive pas à séparer
+					return make_pair(save_max, 1);
+
+				//on arrive à séparer ...
+				int i_max = premiers2[0];
+				save_max.push_back(i_max);
+				continue;
 			}
 
+			int i_max = premiers[0];
+			for (int i(0); i < save_max_trie.size(); ++i)
+				i_max = (i_max >= save_max_trie[i] ? i_max + 1 : i_max);
 
-			return make_pair(resultat2, 1);
+			save_max.push_back(i_max);
+			continue;
 		}
-		if (flag2 == 2) {
-			decaler_ordre(resultat2, { i_max });
-			resultat2.insert(resultat2.begin(), i_max);
-			//			resultat2.insert(resultat2.end(), i_min.begin(), i_min.end());
-
-			return make_pair(resultat2, 2);
+		if (flag == 1) {
+			decaler_ordre(resultat, save_max_trie);
+			save_max.insert(save_max.end(), resultat.begin(), resultat.end());
+			if (save_max.size() == n)
+				return make_pair(save_max, 2);
+			continue;
 		}
-		
+		if (flag == 2) {
+			decaler_ordre(resultat, save_max_trie);
+			save_max.insert(save_max.end(), resultat.begin(), resultat.end());
+			if (save_max.size() == n)
+				return make_pair(save_max, 2);
+			continue;
+		}
 	}
-	if (flag == 1) {
-		if (resultat.size() == pref.size()) {
-			resultat.insert(resultat.end(), i_min.begin(), i_min.end());
-			return make_pair(resultat, 2);
-		}
-		return make_pair(resultat, 1);
-	}
-	// flag == 2
-	resultat.insert(resultat.end(), i_min.begin(), i_min.end());
-
-	return make_pair(resultat, 2);
 }
 
+vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon) { //a partir de la liste des votes
+	vector<vector<int>> pref = compresser(tableau);
+	vector<double> resultat = vote(pref, epsilon);
+	vector<int> ordre = ordre_double(resultat);
+	
+//	vector<int> interessant;
+//	for (int i(0); (i < ordre.size()) && (i < 10); ++i)
+//		interessant.push_back(ordre[i]);
+//	sort(interessant.begin(), interessant.end());
 
-std::vector<int> boucle_max_min(std::vector<std::vector<int>>  pref, double epsilon) {
-	vector<int> resultat;
-	int flag;
-	std::tie(resultat, flag) = get_max_min(pref, epsilon);
+	vector<int> ininteressant;
+	int fin_premiers = (10< ordre.size()) ? 10 : ordre.size();
+	for (int i(fin_premiers); i < ordre.size(); ++i)
+		ininteressant.push_back(ordre[i]);
 
-	if (resultat.size() == pref.size())
-		return resultat;
-	if (flag == 0)
-		return vector<int>(0, 0);
-	if (flag == 2)
-		return resultat;
+	enlever_liste(pref, ininteressant);
+	vector<int> resultat_ordre;
+	resultat_ordre = get<0>(get_max_min(pref, epsilon));
 
-	enlever_liste(pref, resultat);
-	vector<int> resultat_temp = boucle_max_min(pref, epsilon);
-	if (resultat_temp.size() == 0)
-		return resultat;
-
-	decaler_ordre(resultat_temp, resultat);
-	resultat.insert(resultat.end(), resultat_temp.begin(), resultat_temp.end());
-	return resultat;
-
+	decaler_ordre(resultat_ordre, ininteressant);
+	vector<pair<int, double>> liste_conjointe;
+	liste_conjointe.reserve(resultat_ordre.size());
+	for (int i(0); i < liste_conjointe.size(); ++i)
+		liste_conjointe.push_back(make_pair(resultat_ordre[i], resultat[resultat_ordre[i]]));
+	return liste_conjointe;
 }
-

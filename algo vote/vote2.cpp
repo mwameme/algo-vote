@@ -366,6 +366,7 @@ vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon
 	n = pref.size();
 	vector<double> resultat = vote(pref, epsilon);
 	vector<int> ordre = ordre_double(resultat);
+	int max = 10;
 	
 //	vector<int> interessant;
 //	for (int i(0); (i < ordre.size()) && (i < 10); ++i)
@@ -373,37 +374,38 @@ vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon
 //	sort(interessant.begin(), interessant.end());
 
 	vector<int> ininteressant;
-	int fin_premiers = (10< ordre.size()) ? 10 : ordre.size();
+	int fin_premiers = (max< ordre.size()) ? max : ordre.size();
 	for (int i(fin_premiers); i < ordre.size(); ++i)
 		ininteressant.push_back(ordre[i]);
+	sort(ininteressant.begin(), ininteressant.end());
 
-	enlever_liste(pref, ininteressant);
+	enlever_liste(pref, ininteressant);//on garde seulement les ininteressants
 	vector<int> resultat_ordre;
 	resultat_ordre = get<0>(get_max_min(pref, epsilon));
-	decaler_ordre(resultat_ordre, ininteressant);
+	decaler_ordre(resultat_ordre, ininteressant);//on redécale
 
-	vector<pair<int, double>> liste_conjointe;
+	vector<pair<int, double>> liste_conjointe;//on sauve ces premiers dans la liste de retour
 	liste_conjointe.reserve(pref.size());
 	for (int i(0); i < resultat_ordre.size(); ++i)
 		liste_conjointe.push_back(make_pair(resultat_ordre[i], resultat[resultat_ordre[i]]));
 
-	vector<bool> ordre_autre_bool(n,false);
+	vector<bool> ordre_autre_bool(n,false);//on regarde les éléments qui ne sont pas dans la liste retour
 	for (int i(0); i < resultat_ordre.size(); ++i)
 		ordre_autre_bool[resultat_ordre[i]] = true;
 	vector<int> ordre_autre;
 	for (int i(0); i < ordre_autre_bool.size(); ++i)
 		if (!ordre_autre_bool[i])
 			ordre_autre.push_back(i);
-	sort(ordre_autre.begin(), ordre_autre.end());
+//	sort(ordre_autre.begin(), ordre_autre.end()); //déjà trié
 
-	vector<double> ordre_autre_double;
+	vector<double> ordre_autre_double;//on regarde les valeurs de ces éléments.
 	ordre_autre_double.reserve(ordre_autre.size());
 	for (int i(0); i < ordre_autre.size(); ++i)
 		ordre_autre_double.push_back(resultat[ordre_autre[i]]);
-	vector<int> ordre_autre_trie = ordre_double(ordre_autre_double);
+	vector<int> ordre_autre_trie = ordre_double(ordre_autre_double);//puis on les trie par ordre décroissant
 
 	for (int i(0); i < ordre_autre_trie.size(); ++i)
-		liste_conjointe.push_back(make_pair(ordre_autre[ordre_autre_trie[i]], resultat[ordre_autre[ordre_autre_trie[i]]]));
+		liste_conjointe.push_back(make_pair(ordre_autre[ordre_autre_trie[i]], resultat[ordre_autre[ordre_autre_trie[i]]]));//on les rajoute à la liste de retour ...
 
 	return liste_conjointe;
 }

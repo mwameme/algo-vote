@@ -363,6 +363,7 @@ std::pair<std::vector<int>, int> get_max_min(std::vector<std::vector<int>>  pref
 
 vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon,int n) { //a partir de la liste des votes
 	vector<vector<int>> pref = compresser_2(tableau,n);
+	n = pref.size();
 	vector<double> resultat = vote(pref, epsilon);
 	vector<int> ordre = ordre_double(resultat);
 	
@@ -379,11 +380,30 @@ vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon
 	enlever_liste(pref, ininteressant);
 	vector<int> resultat_ordre;
 	resultat_ordre = get<0>(get_max_min(pref, epsilon));
-
 	decaler_ordre(resultat_ordre, ininteressant);
+
 	vector<pair<int, double>> liste_conjointe;
-	liste_conjointe.reserve(resultat_ordre.size());
-	for (int i(0); i < liste_conjointe.size(); ++i)
+	liste_conjointe.reserve(pref.size());
+	for (int i(0); i < resultat_ordre.size(); ++i)
 		liste_conjointe.push_back(make_pair(resultat_ordre[i], resultat[resultat_ordre[i]]));
+
+	vector<bool> ordre_autre_bool(n,false);
+	for (int i(0); i < resultat_ordre.size(); ++i)
+		ordre_autre_bool[resultat_ordre[i]] = true;
+	vector<int> ordre_autre;
+	for (int i(0); i < ordre_autre_bool.size(); ++i)
+		if (!ordre_autre_bool[i])
+			ordre_autre.push_back(i);
+	sort(ordre_autre.begin(), ordre_autre.end());
+
+	vector<double> ordre_autre_double;
+	ordre_autre_double.reserve(ordre_autre.size());
+	for (int i(0); i < ordre_autre.size(); ++i)
+		ordre_autre_double.push_back(resultat[ordre_autre[i]]);
+	vector<int> ordre_autre_trie = ordre_double(ordre_autre_double);
+
+	for (int i(0); i < ordre_autre_trie.size(); ++i)
+		liste_conjointe.push_back(make_pair(ordre_autre[ordre_autre_trie[i]], resultat[ordre_autre[ordre_autre_trie[i]]]));
+
 	return liste_conjointe;
 }

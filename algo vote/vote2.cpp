@@ -169,7 +169,7 @@ vector<int> get_premiers(vector<double> const& resultat, vector<int> const& ordr
 }
 
 vector<int> get_premiers(vector<pair<int,double>> liste) { //"ordre" est ordonné. Renvoyer le tableau des premiers ex-aequo (trié)
-	sort(liste.begin(), liste.end(), [](pair<int, double> a, pair<int, double> b) {return get<1>(a) > get<1>(b); }); //liste triée en décroissant ...
+	sort(liste.begin(), liste.end(), [](pair<int, double> a, pair<int, double> b) -> bool {return get<1>(a) > get<1>(b); }); //liste triée en décroissant ...
 
 	int ordre_temp = std::get<0>(liste[0]);
 	vector<int> premiers{ ordre_temp };
@@ -181,7 +181,7 @@ vector<int> get_premiers(vector<pair<int,double>> liste) { //"ordre" est ordonné
 		else
 			break;
 	}
-	sort(premiers.begin(), premiers.end(), [](int a, int b) {return a < b; }); //les premiers sont re-triés
+	sort(premiers.begin(), premiers.end(), [](int a, int b) -> bool {return a < b; }); //les premiers sont re-triés
 	return premiers;
 }
 

@@ -15,7 +15,7 @@ vector<int> ordre_alea(int n) {
 	return ordre_double(liste);
 }
 
-int compter_ordonne(vector<vector<int>> const& pref, const vector<int> & ordre, int debut) {
+int compter_ordonne(vector<vector<int>> const& pref, vector<int> ordre, int debut) {
 	if (debut == 0)
 		debut = pref.size();
 
@@ -31,7 +31,7 @@ int compter_ordonne(vector<vector<int>> const& pref, const vector<int> & ordre, 
 };
 
 
-int comparer_listes(vector<vector<int>> const& pref, const vector<int> & ordre1, const  vector<int>&  ordre2, int n) { // positif si ordre1 est plus souvent préféré à ordre2 ... 
+int comparer_listes(vector<vector<int>> const& pref, vector<int> ordre1, vector<int> ordre2, int n) { // positif si ordre1 est plus souvent préféré à ordre2 ... 
 	int cumul = 0;
 
 	for (int i(0); i < n; ++i)
@@ -60,10 +60,20 @@ vector<vector<int>> compresser(vector<vector<int>> const& votes) {
 }
 
 vector<vector<int>> compresser_2(vector<vector<int>> const& votes,int n) {//les listes ne sont pas entieres ...
+/*	vector<int> total;
+	for (int i(0); i < votes.size(); ++i)
+		for (int j(0); j < votes[i].size(); ++j)
+			total.push_back(votes[i][j]);
+	sort(total.begin(), total.end());
+	auto last = std::unique(total.begin(), total.end());
+	// v now holds {1 2 1 3 4 5 4 x x x}, where 'x' is indeterminate
+	total.erase(last, total.end());
+	int n = total.size();
+	*/
 	int N = votes.size();
 	vector<vector<int>> preferences(n, vector<int>(n, 0));
 
-	for (int i(0); i < N; ++i) { //on parcourt la liste des votes
+	for (int i(0); i < N; ++i) { //on parcourt la liste de votes
 		vector<bool> vec_fait(n, false);
 		for (int j(0); j < votes[i].size(); ++j) {
 			vec_fait[votes[i][j]] = true;
@@ -250,9 +260,9 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 	//2 : tout est bon : liste entiere des max
 	vector<int> vide(0);
 
-	const int n = pref.size();
+	int n = pref.size();
 	if (n == 1)
-		return std::make_tuple(vector<int>(1, 0), 2,vide);
+		return std::make_pair(vector<int>(1, 0), 2);
 	vector<int> save_max; //liste partielle des max.
 	vector<vector<int>> pref_save = pref;
 	vector<double> resultat_save = vote(pref_save, epsilon);
@@ -295,10 +305,8 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 
 		vector<int> resultat;
 		int flag;
-		vector<int> resultat_premiers;
-		std::tie(resultat, flag,resultat_premiers) = get_max_min(pref, epsilon);
+		std::tie(resultat, flag) = get_max_min(pref, epsilon);
 		decaler_ordre(resultat, i_min);
-		decaler_ordre(resultat_premiers, i_min);
 
 		if (flag == 0) { //rien n'a fonctionné ... on regarde si avant d'avoir enlevé le i_min on peut trouver un i_max ... et on ré-essaye
 			//trier new_resultat selon pref_save (=resultat1), car pref ne marche pas.
@@ -313,7 +321,7 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 //					vector<int> positions(pref_save.size(), 0);
 //					for (int i(0); i < positions.size(); ++i)
 //						positions[i] = i;
-					return make_tuple(premiers, 0,vide);
+					return make_pair(premiers, 0);
 				}
 				//n'arrive pas à séparer avant d'enlever i_min .... Donc on essaye de séparer avant d'enlever save_max. Dans le cas save_max !=0
 				decaler_ordre(premiers, save_max_trie);
@@ -324,7 +332,7 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 				vector<int> premiers2 = get_premiers(liste_conjointe_2);
 
 				if (premiers2.size() >= 2) //on n'arrive pas à séparer
-					return make_tuple(save_max, 1,premiers2);
+					return make_pair(save_max, 1);
 
 				//on arrive à séparer ...
 				int i_max = premiers2[0];
@@ -342,27 +350,15 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 		if (flag == 1) {
 			decaler_ordre(resultat, save_max_trie);
 			save_max.insert(save_max.end(), resultat.begin(), resultat.end());
-			if (save_max.size() == n) //liste entiere des save_max
-				return make_tuple(save_max, 2,vide);
-			//dans ce cas uniquement, on utilise resutlat_premiers //continue sinon
-			decaler_ordre(resultat_premiers, save_max_trie);
-			std::vector<pair<int, double>> liste_conjointe;
-			liste_conjointe.reserve(resultat_premiers.size());
-			for (int i(0); i < resultat_premiers.size(); ++i)
-				liste_conjointe.push_back(std::make_pair(resultat_premiers[i], resultat_save[resultat_premiers[i]]));
-			std::vector<int> premiers = get_premiers(liste_conjointe); //dans la liste avec min et sans save_max.
-			
-			if (premiers.size() >= 2)
-				return make_tuple(save_max, 1, premiers);
-			//on a réussi à séparer
-			save_max.push_back(premiers[0]);
+			if (save_max.size() == n)
+				return make_pair(save_max, 2);
 			continue;
 		}
 		if (flag == 2) {
 			decaler_ordre(resultat, save_max_trie);
 			save_max.insert(save_max.end(), resultat.begin(), resultat.end());
 			if (save_max.size() == n)
-				return make_tuple(save_max, 2,vide);
+				return make_pair(save_max, 2);
 			continue;
 		}
 	}
@@ -373,21 +369,21 @@ vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon
 	n = pref.size();
 	vector<double> resultat = vote(pref, epsilon);
 	vector<int> ordre = ordre_double(resultat);
-	int max = 7;
+	int max = 10;
 	
 //	vector<int> interessant;
 //	for (int i(0); (i < ordre.size()) && (i < 10); ++i)
 //		interessant.push_back(ordre[i]);
 //	sort(interessant.begin(), interessant.end());
 
-	vector<int> ininteressant;//on travaille uniquement avec les 7 premiers (selon le calcul de Markov simple). On les choisit ici
+	vector<int> ininteressant;
 	int fin_premiers = (max< ordre.size()) ? max : ordre.size();
 	for (int i(fin_premiers); i < ordre.size(); ++i)
 		ininteressant.push_back(ordre[i]);
 	sort(ininteressant.begin(), ininteressant.end());
 
-	enlever_liste(pref, ininteressant);//on garde seulement les interessants
-	vector<int> resultat_ordre;//les 7 premiers, apres les get_max_min
+	enlever_liste(pref, ininteressant);//on garde seulement les ininteressants
+	vector<int> resultat_ordre;
 	resultat_ordre = get<0>(get_max_min(pref, epsilon));
 	decaler_ordre(resultat_ordre, ininteressant);//on redécale
 
@@ -403,7 +399,7 @@ vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon
 	for (int i(0); i < ordre_autre_bool.size(); ++i)
 		if (!ordre_autre_bool[i])
 			ordre_autre.push_back(i);
-	//on a ceux qui restent, les vrais "ininteressants"
+//	sort(ordre_autre.begin(), ordre_autre.end()); //déjà trié
 
 	vector<double> ordre_autre_double;//on regarde les valeurs de ces éléments.
 	ordre_autre_double.reserve(ordre_autre.size());

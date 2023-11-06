@@ -33,7 +33,7 @@ void decaler_ordre(std::vector<int>& ordre, std::vector<int> const& liste);
 
 std::vector<int> get_min(std::vector<std::vector<int>> votes, double epsilon); //enleve le max, itéré, jusqu'à trouver le min. epsilon=2.
 
-std::pair<std::vector<int>, int> get_max_min(std::vector<std::vector<int>> pref, double epsilon); //enleve le min (de get_min), itéré, jusqu'à obtenir le max.
+std::tuple<std::vector<int>, int,std::vector<int>> get_max_min(std::vector<std::vector<int>> pref, double epsilon); //enleve le min (de get_min), itéré, jusqu'à obtenir le max.
 
 std::vector<std::pair<int, double>> algo_entier(std::vector<std::vector<int>> tableau, double epsilon,int n); //a partir de la liste des votes
 

@@ -28,13 +28,13 @@ int main()
 	vector<pair<int,double>> resultat_algo = algo_entier(gen, epsilon,n);
 	vector<int> resultat_algo_liste;
 	resultat_algo_liste.reserve(resultat_algo.size());
-	for (int i(0); i < resultat_algo_liste.size(); ++i)
+	for (int i(0); i < resultat_algo.size(); ++i)
 		resultat_algo_liste.push_back(get<0>(resultat_algo[i]));
 	vector<int> resultat_0 = ordre_double(vote(pref, epsilon));
 
-	cout << "compter ordonne : rec    : " << compter_ordonne(pref, resultat_algo_liste,8) << endl;
-	cout << "compter ordonne : 0      : " << compter_ordonne(pref, resultat_0,8) << endl;
-	cout << "nombre preferences rec>0 : " << comparer_listes(pref, resultat_algo_liste, resultat_0, 8) << endl;
+	cout << "compter ordonne : rec    : " << compter_ordonne(pref, resultat_algo_liste,4) << endl;
+	cout << "compter ordonne : 0      : " << compter_ordonne(pref, resultat_0,4) << endl;
+	cout << "nombre preferences rec>0 : " << comparer_listes(pref, resultat_algo_liste, resultat_0, 4) << endl;
 	long question;
 	cin >> question;
 	goto debut;

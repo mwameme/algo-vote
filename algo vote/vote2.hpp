@@ -11,9 +11,9 @@
 
 std::vector<int> ordre_alea(int n);
 
-int compter_ordonne(std::vector<std::vector<int>> const& pref, std::vector<int> ordre, int debut);
+int compter_ordonne(std::vector<std::vector<int>> const& pref, std::vector<int> const& ordre, int debut);
 
-int comparer_listes(std::vector<std::vector<int>> const& pref, std::vector<int> ordre, std::vector<int> ordre2, int n);// positif si ordre1 est plus souvent préféré à ordre2 ... 
+int comparer_listes(std::vector<std::vector<int>> const& pref, std::vector<int> const& ordre, std::vector<int> const& ordre2, int n);// positif si ordre1 est plus souvent préféré à ordre2 ... 
 
 std::vector<std::vector<int>> compresser(std::vector<std::vector<int>> const& votes);
 

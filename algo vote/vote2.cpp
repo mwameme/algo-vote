@@ -185,7 +185,7 @@ vector<int> get_premiers(vector<pair<int,double>> liste) { //"ordre" est ordonné
 	return premiers;
 }
 
-
+/*
 void enlever_liste(vector<vector<int>>& pref, vector<int> const& liste) {//liste croissante. Enleve cette liste de votés du tableau de préférences ...
 	for (int i(liste.size() - 1); i >= 0; --i)
 		pref.erase(pref.begin() + liste[i]);
@@ -196,17 +196,122 @@ void enlever_liste(vector<vector<int>>& pref, vector<int> const& liste) {//liste
 	return;
 	//	return pref;
 }
+*/
 
 
+void enlever_liste(vector<vector<int>>& pref, vector<int> const& liste) {//liste non forcement croissante. Enleve cette liste de votés du tableau de préférences ...
+	int n = pref.size();
+	int m = n - liste.size();
+	if (m == 0) {
+		pref.resize(0);
+		return;
+	}
+	vector<bool> est_garde(n, true);
+	for (int i(0); i < liste.size(); ++i)
+		est_garde[liste[i]] = false;
 
+	int j = 0;
+	for (int k(0); k < m; ++k) {
+		while (!est_garde[j]) {
+			++j;
+//			if (j == n)//normalement n'arrive pas !
+//				goto after1;
+		}
+		swap(pref[k] , pref[j]);
+		++j;
+	}
+//	after1:
+	pref.resize(m);
+
+	for (int i(0); i < pref.size(); ++i) {
+		j = 0;
+		for (int k(0); k < m; ++k) {
+			while (!est_garde[j]) {
+				++j;
+//				if (j == n)//normalement n'arrive pas !
+//					goto after2;
+			}
+			pref[i][k] = pref[i][j];
+			++j;
+		}
+//		after2:
+		pref[i].resize(m);
+	}
+	return;
+	//	return pref;
+}
+
+/*
 void decaler_ordre(vector<int>& ordre, vector<int> const& liste) { //liste croissante. la liste "ordre" est modifiee. On avait enleve "liste" du tableau de preferences.
 	for (int i(0); i < liste.size(); ++i)
 		for (int j(0); j < ordre.size(); ++j)
 			ordre[j] = (ordre[j] >= liste[i] ? ordre[j] + 1 : ordre[j]);
 	return;
-	//	return ordre;
+}
+*/
+
+void decaler_ordre(int& ordre, vector<int> const& liste) { // idem que decaler_ordre, mais pour un seul entier
+	for (int i(0); i < liste.size(); ++i)
+		ordre = (ordre >= liste[i] ? ordre + 1 : ordre);
+	return;
 }
 
+
+void decaler_ordre(vector<int>& ordre, vector<int> const& liste) { //liste croissante. la liste "ordre" est modifiee. On avait enleve "liste" du tableau de preferences.
+	if ((liste.size() == 0) || (ordre.size() ==0))
+		return;
+	vector<int> save_ordre = ordre_int(ordre); //croissant
+	sort(ordre.begin(), ordre.end());
+
+	int j = 0;
+	for (int i(0); i < ordre.size(); ++i) {
+		if (j == liste.size()) {
+			ordre[i] += j;
+			continue;
+		}
+		while (ordre[i] + j >= liste[j]) {
+			++j;
+			if (j == liste.size())
+				break;
+		}
+		ordre[i] += j;
+	}
+
+	vector<int> result(save_ordre.size(),0);
+	for (int i(0); i < save_ordre.size(); ++i)
+		result[i] = ordre[save_ordre[i]]; //vérifier ?
+	ordre = result;
+
+	return;
+}
+
+void decaler_ordre_back(vector<int>& ordre, vector<int> const& liste) { //liste croissante. on enleve la liste, même action que pour "enlever_liste" ! 
+																		//Les deux listes ne doivent pas avoir d'élément communs
+																		//ordre doit être trié (croissant).
+	int pos_liste = 0;
+	for (int i(0); i < ordre.size(); ++i) {
+		if (pos_liste == liste.size()) {
+			ordre[i] -= pos_liste;
+			continue;
+		}
+		while (liste[pos_liste] < ordre[i]) {
+			++pos_liste;
+			if (pos_liste == liste.size())
+				break;
+		}
+		ordre[i] -= pos_liste;
+	}
+	return;
+}
+
+void decaler_ordre_back(int& ordre, vector<int> const& liste) { // idem que decaler_ordre_back, mais pour un seul entier. Pas d'overlap.
+	int i;
+	for (i = 0; i < liste.size(); ++i)
+		if (liste[i] > ordre)
+			break;
+	ordre -= i;
+	return;
+}
 
 vector<int> get_min(vector<vector<int>> pref, double epsilon) {
 	int n = pref.size();
@@ -233,7 +338,8 @@ vector<int> get_min(vector<vector<int>> pref, double epsilon) {
 
 	return i_min;
 
-	/*
+	// deuxieme version, non récurrente ...
+	/* 
 	vector<pair<int,double>> liste_conjointe;
 	liste_conjointe.reserve(resultat.size());
 	for(int i(0);i<liste_conjointe.size();++i)
@@ -263,7 +369,7 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 		pref = pref_save;
 		vector<int> save_max_trie = save_max;
 		sort(save_max_trie.begin(), save_max_trie.end());
-		enlever_liste(pref, save_max_trie);
+//		enlever_liste(pref, save_max_trie); //on le fait désormais juste avant les "continue" !!! pour accélérer. c'est pref_save qu'on modifie ainsi.
 
 		vector<int> i_min = get_min(pref, epsilon);
 		vector<double> resultat1 = vote(pref, epsilon);
@@ -271,7 +377,9 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 		if (i_min.size() == (n - save_max.size()) ) { //n'arrive pas à séparer grâce à i_min ...
 			decaler_ordre(i_min, save_max_trie);
 			if (save_max.size() == 0) {
-				return std::make_tuple(i_min, 0,vide);
+				if(i_min.size() >=2 )
+					return std::make_tuple(i_min, 0,vide);
+				return make_tuple(vector<int>{i_min[0]}, 2, vide);
 			}
 			//si i_min vaut 0 ... simple
 			if (i_min.size() == 1) {
@@ -287,7 +395,11 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 
 			if (premiers.size() >= 2)
 				return make_tuple(save_max, 1,premiers);
-			save_max.push_back(premiers[0]);
+
+			int i_max = premiers[0];
+			save_max.push_back(i_max);
+			decaler_ordre_back(i_max, save_max_trie);
+			enlever_liste(pref_save, vector<int>{i_max});
 			continue;
 		}
 		
@@ -298,7 +410,6 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 		vector<int> resultat_premiers;
 		std::tie(resultat, flag,resultat_premiers) = get_max_min(pref, epsilon);
 		decaler_ordre(resultat, i_min);
-		decaler_ordre(resultat_premiers, i_min);
 
 		if (flag == 0) { //rien n'a fonctionné ... on regarde si avant d'avoir enlevé le i_min on peut trouver un i_max ... et on ré-essaye
 			//trier new_resultat selon pref_save (=resultat1), car pref ne marche pas.
@@ -329,13 +440,16 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 				//on arrive à séparer ...
 				int i_max = premiers2[0];
 				save_max.push_back(i_max);
+				decaler_ordre_back(i_max, save_max_trie);
+				enlever_liste(pref_save, vector<int>{i_max});
 				continue;
 			}
 
 			int i_max = premiers[0];
+			enlever_liste(pref_save, vector<int>{i_max});
+
 			for (int i(0); i < save_max_trie.size(); ++i)
 				i_max = (i_max >= save_max_trie[i] ? i_max + 1 : i_max);
-
 			save_max.push_back(i_max);
 			continue;
 		}
@@ -345,6 +459,7 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 			if (save_max.size() == n) //liste entiere des save_max
 				return make_tuple(save_max, 2,vide);
 			//dans ce cas uniquement, on utilise resutlat_premiers //continue sinon
+			decaler_ordre(resultat_premiers, i_min);
 			decaler_ordre(resultat_premiers, save_max_trie);
 			std::vector<pair<int, double>> liste_conjointe;
 			liste_conjointe.reserve(resultat_premiers.size());
@@ -355,14 +470,19 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 			if (premiers.size() >= 2)
 				return make_tuple(save_max, 1, premiers);
 			//on a réussi à séparer
-			save_max.push_back(premiers[0]);
+			int i_max = premiers[0];
+			save_max.push_back(i_max);
+			decaler_ordre_back(i_max, save_max_trie);
+			enlever_liste(pref_save, vector<int>{i_max});
 			continue;
 		}
 		if (flag == 2) {
+			enlever_liste(pref_save, resultat);
 			decaler_ordre(resultat, save_max_trie);
 			save_max.insert(save_max.end(), resultat.begin(), resultat.end());
 			if (save_max.size() == n)
 				return make_tuple(save_max, 2,vide);
+			//OK
 			continue;
 		}
 	}

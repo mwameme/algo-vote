@@ -45,7 +45,7 @@ int main()
 		if (question < 0)
 			question = 0;
 		if (question == 0)
-			exit;
+			return;
 	}
 
 	goto debut;

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <functional>
+#include <stdexcept>
 
 #include "matrice.hpp"
 #include <algorithm>
@@ -33,11 +34,12 @@ void decaler_ordre(std::vector<int>& ordre, std::vector<int> const& liste); //li
 
 void decaler_ordre(int& ordre, std::vector<int> const& liste);
 
-void decaler_ordre_back(std::vector<int>& ordre, std::vector<int> const& liste);//liste croissante. on enleve la liste, même action que pour "enlever_liste" ! 
+//void decaler_ordre_back(std::vector<int>& ordre, std::vector<int> const& liste);//liste croissante. on enleve la liste, même action que pour "enlever_liste" ! 
 																		//Les deux listes ne doivent pas avoir d'élément communs
 																		//ordre doit être trié (croissant).
 
 void decaler_ordre_back(int& ordre, std::vector<int> const& liste); //idem. Pas d'overlap
+
 
 std::vector<int> get_min(std::vector<std::vector<int>> pref, double epsilon); //enleve le max, itéré, jusqu'à trouver le min. epsilon=2.
 
@@ -56,7 +58,7 @@ template<class T> std::vector<int> ordre(std::vector<T> liste_, std::function<bo
 		liste.push_back( std::make_pair(i, liste_[i]));
 	}
 
-	std::sort(liste.begin(), liste.end(), [&](std::pair<int,T> gauche, std::pair<int,T> droite) {return f(std::get<1>(gauche), std::get<1>(droite)); });
+	std::sort(liste.begin(), liste.end(), [&](std::pair<int,T> gauche, std::pair<int,T> droite) -> bool {return f(std::get<1>(gauche), std::get<1>(droite)); });
 	std::vector<int> resultat;
 	resultat.reserve(n);
 	for (int i(0); i < n; ++i)

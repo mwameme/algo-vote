@@ -14,11 +14,13 @@ using namespace std;
 int main()
 {
 	srand(static_cast<unsigned>(time(0)));
+	int question = 1;
 
 	debut:
 	int N = 20;
 	int n = 15;
 	double epsilon = 1.5;
+	int debut_test = 4;
 
 	vector<vector<int>> gen;
 	for (int i(0); i < N; ++i)
@@ -32,11 +34,20 @@ int main()
 		resultat_algo_liste.push_back(get<0>(resultat_algo[i]));
 	vector<int> resultat_0 = ordre_double(vote(pref, epsilon));
 
-	cout << "compter ordonne : rec    : " << compter_ordonne(pref, resultat_algo_liste,4) << endl;
-	cout << "compter ordonne : 0      : " << compter_ordonne(pref, resultat_0,4) << endl;
-	cout << "nombre preferences rec>0 : " << comparer_listes(pref, resultat_algo_liste, resultat_0, 4) << endl;
-	long question;
-	cin >> question;
+	cout << "compter ordonne : rec    : " << compter_ordonne(pref, resultat_algo_liste,debut_test) << endl;
+	cout << "compter ordonne : 0      : " << compter_ordonne(pref, resultat_0,debut_test) << endl;
+	cout << "nombre preferences rec>0 : " << comparer_listes(pref, resultat_algo_liste, resultat_0, debut_test) << endl;
+	cout << " \t " << endl;
+
+	--question;
+	if (question == 0) {
+		cin >> question;
+		if (question < 0)
+			question = 0;
+		if (question == 0)
+			exit;
+	}
+
 	goto debut;
 }
 

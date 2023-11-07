@@ -22,7 +22,7 @@ int compter_ordonne(vector<vector<int>> const& pref, const vector<int> & ordre, 
 	int n = pref.size();
 	int ordonne = 0;
 
-	for (int i(0); i < debut - 1; ++i)
+	for (int i(0); i < debut ; ++i)
 		for (int j(i + 1); j < debut; ++j)
 			if (pref[ordre[i]][ordre[j]] >= pref[ordre[j]][ordre[i]]) //gauche : i préféré à j
 				++ordonne;
@@ -206,33 +206,33 @@ void enlever_liste(vector<vector<int>>& pref, vector<int> const& liste) {//liste
 		pref.resize(0);
 		return;
 	}
+
 	vector<bool> est_garde(n, true);
 	for (int i(0); i < liste.size(); ++i)
 		est_garde[liste[i]] = false;
 
 	int j = 0;
-	for (int k(0); k < m; ++k) {
-		while (!est_garde[j]) {
+	for (int k(0); k < m; ++k, ++j) {
+		while (est_garde[j] == false ) {
 			++j;
-//			if (j == n)//normalement n'arrive pas !
-//				goto after1;
+			if (j == n)//normalement n'arrive pas !
+				throw std::domain_error("probleme enlever_liste");
 		}
 		swap(pref[k] , pref[j]);
-		++j;
 	}
 //	after1:
 	pref.resize(m);
 
 	for (int i(0); i < pref.size(); ++i) {
 		j = 0;
-		for (int k(0); k < m; ++k) {
-			while (!est_garde[j]) {
+		for (int k(0); k < m; ++k,++j) {
+			while (est_garde[j] ==false) {
 				++j;
-//				if (j == n)//normalement n'arrive pas !
-//					goto after2;
+				if (j == n)//normalement n'arrive pas !
+					throw std::domain_error("probleme enlever_liste");
 			}
 			pref[i][k] = pref[i][j];
-			++j;
+//			++j;
 		}
 //		after2:
 		pref[i].resize(m);
@@ -250,9 +250,12 @@ void decaler_ordre(vector<int>& ordre, vector<int> const& liste) { //liste crois
 }
 */
 
-void decaler_ordre(int& ordre, vector<int> const& liste) { // idem que decaler_ordre, mais pour un seul entier
+void decaler_ordre(int& ordre, vector<int> const& liste) { // idem que decaler_ordre, mais pour un seul entier. liste est supposée triée
 	for (int i(0); i < liste.size(); ++i)
-		ordre = (ordre >= liste[i] ? ordre + 1 : ordre);
+		if (ordre >= liste[i])
+			++ordre;
+		else
+			break;
 	return;
 }
 
@@ -285,9 +288,10 @@ void decaler_ordre(vector<int>& ordre, vector<int> const& liste) { //liste crois
 	return;
 }
 
-void decaler_ordre_back(vector<int>& ordre, vector<int> const& liste) { //liste croissante. on enleve la liste, même action que pour "enlever_liste" ! 
+/*
+void decaler_ordre_back(vector<int>& ordre, vector<int> const& liste) { //on enleve la liste, même action que pour "enlever_liste" ! 
 																		//Les deux listes ne doivent pas avoir d'élément communs
-																		//ordre doit être trié (croissant).
+																		//ordre doit être trié (croissant), ainsi que liste.
 	int pos_liste = 0;
 	for (int i(0); i < ordre.size(); ++i) {
 		if (pos_liste == liste.size()) {
@@ -303,6 +307,7 @@ void decaler_ordre_back(vector<int>& ordre, vector<int> const& liste) { //liste 
 	}
 	return;
 }
+*/
 
 void decaler_ordre_back(int& ordre, vector<int> const& liste) { // idem que decaler_ordre_back, mais pour un seul entier. Pas d'overlap.
 	int i;
@@ -313,10 +318,14 @@ void decaler_ordre_back(int& ordre, vector<int> const& liste) { // idem que deca
 	return;
 }
 
+
+
 vector<int> get_min(vector<vector<int>> pref, double epsilon) {
 	int n = pref.size();
+	if (n == 0)
+		throw std::domain_error("get_min vide");
 	if (n == 1)
-		return { 0 };
+		return vector<int>{ 0 };
 
 	vector<double> resultat = vote(pref, epsilon);
 	vector<int> positions(resultat.size(), 0);
@@ -356,7 +365,7 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 	//2 : tout est bon : liste entiere des max
 	vector<int> vide(0);
 
-	const int n = pref.size();
+	int n = pref.size();
 	if (n == 1)
 		return std::make_tuple(vector<int>(1, 0), 2,vide);
 	vector<int> save_max; //liste partielle des max.
@@ -367,6 +376,9 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 		if (save_max.size() == n)
 			return make_tuple(save_max, 2,vide);
 		pref = pref_save;
+		if ((save_max.size() + pref_save.size()) != n)
+			throw std::domain_error("probleme dimensions : get_max_min");
+
 		vector<int> save_max_trie = save_max;
 		sort(save_max_trie.begin(), save_max_trie.end());
 //		enlever_liste(pref, save_max_trie); //on le fait désormais juste avant les "continue" !!! pour accélérer. c'est pref_save qu'on modifie ainsi.
@@ -379,7 +391,7 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 			if (save_max.size() == 0) {
 				if(i_min.size() >=2 )
 					return std::make_tuple(i_min, 0,vide);
-				return make_tuple(vector<int>{i_min[0]}, 2, vide);
+				return make_tuple(i_min, 2, vide);
 			}
 			//si i_min vaut 0 ... simple
 			if (i_min.size() == 1) {
@@ -398,8 +410,11 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 
 			int i_max = premiers[0];
 			save_max.push_back(i_max);
-			decaler_ordre_back(i_max, save_max_trie);
+			decaler_ordre_back(i_max, save_max_trie); //sans save_max_trie
 			enlever_liste(pref_save, vector<int>{i_max});
+
+			if ((save_max.size() + pref_save.size()) != n)
+				throw std::domain_error("probleme dimensions : get_max_min");
 			continue;
 		}
 		
@@ -442,22 +457,28 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 				save_max.push_back(i_max);
 				decaler_ordre_back(i_max, save_max_trie);
 				enlever_liste(pref_save, vector<int>{i_max});
+
+				if ((save_max.size() + pref_save.size()) != n)
+					throw std::domain_error("probleme dimensions : get_max_min");
 				continue;
 			}
 
 			int i_max = premiers[0];
 			enlever_liste(pref_save, vector<int>{i_max});
-
-			for (int i(0); i < save_max_trie.size(); ++i)
-				i_max = (i_max >= save_max_trie[i] ? i_max + 1 : i_max);
+			decaler_ordre(i_max, save_max_trie);
 			save_max.push_back(i_max);
+
+			if ((save_max.size() + pref_save.size()) != n)
+				throw std::domain_error("probleme dimensions : get_max_min");
 			continue;
 		}
 		if (flag == 1) {
+			enlever_liste(pref_save, resultat);
 			decaler_ordre(resultat, save_max_trie);
 			save_max.insert(save_max.end(), resultat.begin(), resultat.end());
 			if (save_max.size() == n) //liste entiere des save_max
 				return make_tuple(save_max, 2,vide);
+
 			//dans ce cas uniquement, on utilise resutlat_premiers //continue sinon
 			decaler_ordre(resultat_premiers, i_min);
 			decaler_ordre(resultat_premiers, save_max_trie);
@@ -470,10 +491,17 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 			if (premiers.size() >= 2)
 				return make_tuple(save_max, 1, premiers);
 			//on a réussi à séparer
-			int i_max = premiers[0];
+			int i_max = premiers[0];//i_max est la vraie position
+
+			save_max_trie = save_max;
+			sort(save_max_trie.begin(), save_max_trie.end());//on a déjà enlevé qqchose de pref_save ... donc on doit faire en fonction du nouveau save_max_trie !
 			save_max.push_back(i_max);
+
 			decaler_ordre_back(i_max, save_max_trie);
-			enlever_liste(pref_save, vector<int>{i_max});
+			enlever_liste(pref_save, vector<int>{i_max});//ici c'est bon.
+
+			if ((save_max.size() + pref_save.size()) != n)
+				throw std::domain_error("probleme dimensions : get_max_min");
 			continue;
 		}
 		if (flag == 2) {
@@ -483,6 +511,9 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 			if (save_max.size() == n)
 				return make_tuple(save_max, 2,vide);
 			//OK
+
+			if ((save_max.size() + pref_save.size()) != n)
+				throw std::domain_error("probleme dimensions : get_max_min");
 			continue;
 		}
 	}

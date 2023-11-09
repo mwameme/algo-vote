@@ -43,10 +43,12 @@ void decaler_ordre_back(int& ordre, std::vector<int> const& liste); //idem. Pas 
 
 std::vector<int> get_min(std::vector<std::vector<int>> pref, double epsilon); //enleve le max, itéré, jusqu'à trouver le min. epsilon=2.
 
-std::tuple<std::vector<int>, int,std::vector<int>> get_max_min(std::vector<std::vector<int>> pref, double epsilon); //enleve le min (de get_min), itéré, jusqu'à obtenir le max.
+//std::tuple<std::vector<int>, int,std::vector<int>> get_max_min(std::vector<std::vector<int>> pref, double epsilon); //enleve le min (de get_min), itéré, jusqu'à obtenir le max.
+std::tuple<std::vector<int>, int> get_max_min(std::vector<std::vector<int>> pref, double epsilon);
 
-std::vector<std::pair<int, double>> algo_entier(std::vector<std::vector<int>> tableau, double epsilon,int n); //a partir de la liste des votes. Prend seulement les 7 premiers pour get_max_min. Les autres sont triés via la chaine de Markov.
-
+std::pair<std::vector<std::pair<int, double>>,int> algo_entier(std::vector<std::vector<int>> tableau, double epsilon,int n); //a partir de la liste des votes.
+//Prend seulement les 7 premiers pour get_max_min. Les autres sont triés via la chaine de Markov.
+//int : taille du get_max_min ...
 
 //ordre 
 

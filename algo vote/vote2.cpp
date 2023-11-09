@@ -358,7 +358,7 @@ vector<int> get_min(vector<vector<int>> pref, double epsilon) {
 	*/
 }
 
-
+/*
 std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vector<int>>  pref, double epsilon) { //appeler epsilon = 2.
 	//0 : a buggé. Renvoit la liste 
 	//1 : partiel ... renvoit la liste partielle des max
@@ -518,8 +518,138 @@ std::tuple<std::vector<int>, int,vector<int>> get_max_min(std::vector<std::vecto
 		}
 	}
 }
+*/
 
-vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon,int n) { //a partir de la liste des votes
+
+std::tuple<std::vector<int>, int> get_max_min(std::vector<std::vector<int>>  pref, double epsilon) { //appeler epsilon = 2.
+	//0 : a buggé. Renvoit la liste 
+	//1 : partiel ... renvoit la liste partielle des max
+//	vector<int> vide(0);
+
+	int n = pref.size();
+	if (n == 1)
+		return std::make_tuple(vector<int>(1, 0), 1);
+	vector<int> save_max; //liste partielle des max.
+	vector<vector<int>> pref_save = pref;
+	vector<double> resultat_save = vote(pref_save, epsilon);
+
+	while (true) {//boucle pour le cas flag_1 (augmente progressivement la liste save_max)
+		if (save_max.size() == n)
+			return make_tuple(save_max, 1);
+		pref = pref_save;
+		if ((save_max.size() + pref_save.size()) != n)
+			throw std::domain_error("probleme dimensions : get_max_min");
+
+		vector<int> save_max_trie = save_max;
+		sort(save_max_trie.begin(), save_max_trie.end());
+		//		enlever_liste(pref, save_max_trie); //on le fait désormais juste avant les "continue" !!! pour accélérer. c'est pref_save qu'on modifie ainsi.
+
+		vector<int> i_min = get_min(pref, epsilon);
+//		vector<double> resultat1 = vote(pref, epsilon);
+
+		if (i_min.size() == (n - save_max.size())) { //n'arrive pas à séparer grâce à i_min ...
+			decaler_ordre(i_min, save_max_trie);
+			if (save_max.size() == 0) {
+				if (i_min.size() >= 2)
+					return std::make_tuple(i_min, 0);
+				return make_tuple(i_min, 1);
+			}
+			//si i_min vaut 0 ... simple
+			if (i_min.size() == 1) {
+				save_max.push_back(i_min[0]);
+				return std::make_tuple(save_max,1 );
+			}
+			//arrive-t-on à séparer avec pref_save ?
+			std::vector<pair<int, double>> liste_conjointe;
+			liste_conjointe.reserve(i_min.size());
+			for (int i(0); i < i_min.size(); ++i)
+				liste_conjointe.push_back(std::make_pair(i_min[i], resultat_save[i_min[i]]));
+			std::vector<int> premiers = get_premiers(liste_conjointe); //dans la liste avec min et sans save_max.
+
+			if (premiers.size() >= 2)
+				return make_tuple(save_max, 1);
+
+			int i_max = premiers[0];
+			save_max.push_back(i_max);
+			decaler_ordre_back(i_max, save_max_trie); //sans save_max_trie
+			enlever_liste(pref_save, vector<int>{i_max});
+
+			if ((save_max.size() + pref_save.size()) != n)
+				throw std::domain_error("probleme dimensions : get_max_min");
+			continue;
+		}
+
+		enlever_liste(pref, i_min);
+
+		vector<int> resultat;
+		int flag;
+		std::tie(resultat, flag) = get_max_min(pref, epsilon);
+		decaler_ordre(resultat, i_min);
+
+		if (flag == 0) { //rien n'a fonctionné ... on regarde si avant d'avoir enlevé le i_min on peut trouver un i_max ... et on ré-essaye
+			//trier new_resultat selon pref_save (=resultat1), car pref ne marche pas.
+			vector<double> resultat1 = vote(pref_save, epsilon);
+
+			std::vector<pair<int, double>> liste_conjointe;
+			liste_conjointe.reserve(resultat.size());
+			for (int i(0); i < resultat.size(); ++i)
+				liste_conjointe.push_back(std::make_pair(resultat[i], resultat1[resultat[i]]));
+			std::vector<int> premiers = get_premiers(liste_conjointe); //dans la liste avec min et sans save_max.
+
+			if (premiers.size() >= 2) {
+				if (save_max.size() == 0) {
+					//					vector<int> positions(pref_save.size(), 0);
+					//					for (int i(0); i < positions.size(); ++i)
+					//						positions[i] = i;
+					return make_tuple(premiers, 0);
+				}
+				//n'arrive pas à séparer avant d'enlever i_min .... Donc on essaye de séparer avant d'enlever save_max. Dans le cas save_max !=0
+				decaler_ordre(premiers, save_max_trie);
+				std::vector<pair<int, double>> liste_conjointe_2;
+				liste_conjointe_2.reserve(premiers.size());
+				for (int i(0); i < premiers.size(); ++i)
+					liste_conjointe_2.push_back(std::make_pair(premiers[i], resultat_save[premiers[i]]));
+				vector<int> premiers2 = get_premiers(liste_conjointe_2);
+
+				if (premiers2.size() >= 2) //on n'arrive pas à séparer
+					return make_tuple(save_max, 1);
+
+				//on arrive à séparer ...
+				int i_max = premiers2[0];
+				save_max.push_back(i_max);
+				decaler_ordre_back(i_max, save_max_trie);
+				enlever_liste(pref_save, vector<int>{i_max});
+
+				if ((save_max.size() + pref_save.size()) != n)
+					throw std::domain_error("probleme dimensions : get_max_min");
+				continue;
+			}
+
+			int i_max = premiers[0];
+			enlever_liste(pref_save, vector<int>{i_max});
+			decaler_ordre(i_max, save_max_trie);
+			save_max.push_back(i_max);
+
+			if ((save_max.size() + pref_save.size()) != n)
+				throw std::domain_error("probleme dimensions : get_max_min");
+			continue;
+		}
+		if (flag == 1) { //on a la liste partielle des max (resultat). On l'ajoute à save_max et on recommence
+			enlever_liste(pref_save, resultat);
+			decaler_ordre(resultat, save_max_trie);
+			save_max.insert(save_max.end(), resultat.begin(), resultat.end());
+			if (save_max.size() == n)
+				return make_tuple(save_max, 1);
+			//OK
+
+			if ((save_max.size() + pref_save.size()) != n)
+				throw std::domain_error("probleme dimensions : get_max_min");
+			continue;
+		}
+	}
+}
+
+pair<vector<pair<int,double>>,int> algo_entier(vector<vector<int>> tableau, double epsilon,int n) { //a partir de la liste des votes
 	vector<vector<int>> pref = compresser_2(tableau,n);
 	n = pref.size();
 	vector<double> resultat = vote(pref, epsilon);
@@ -565,5 +695,5 @@ vector<pair<int,double>> algo_entier(vector<vector<int>> tableau, double epsilon
 	for (int i(0); i < ordre_autre_trie.size(); ++i)
 		liste_conjointe.push_back(make_pair(ordre_autre[ordre_autre_trie[i]], resultat[ordre_autre[ordre_autre_trie[i]]]));//on les rajoute à la liste de retour ...
 
-	return liste_conjointe;
+	return make_pair(liste_conjointe, resultat_ordre.size());
 }

@@ -662,8 +662,8 @@ pair<vector<pair<int,double>>,int> algo_entier(vector<vector<int>> tableau, doub
 //	sort(interessant.begin(), interessant.end());
 
 	vector<int> ininteressant;//on travaille uniquement avec les 7 premiers (selon le calcul de Markov simple). On les choisit ici
-	int fin_premiers = (max< ordre.size()) ? max : ordre.size();
-	for (int i(fin_premiers); i < ordre.size(); ++i)
+	max = (max< ordre.size()) ? max : ordre.size();
+	for (int i(max); i < ordre.size(); ++i)
 		ininteressant.push_back(ordre[i]);
 	sort(ininteressant.begin(), ininteressant.end());
 

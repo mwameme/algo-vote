@@ -6,6 +6,7 @@
 
 #include "vote2.hpp"
 
+
 using namespace std;
 
 vector<int> ordre_alea(int n) {
@@ -91,7 +92,7 @@ vector<vector<int>> compresser_2(vector<vector<int>> const& votes,int n) {//les 
 
 
 
-vector<double> vote(vector<vector<int>> const& pref, double epsilon_) {//chaine de markov ... passe d'un tableau de préférence, à une liste ordonnée
+vector<double> vote(vector<vector<int>> const& pref, double epsilon_,int repete) {//chaine de markov ... passe d'un tableau de préférence, à une liste ordonnée
 	int n = pref.size();
 	if (n == 0)
 		return vector<double>(0);
@@ -142,7 +143,7 @@ vector<double> vote(vector<vector<int>> const& pref, double epsilon_) {//chaine 
 
 
 	vector<double> X(n, inv_n); //calculer la proba stationnaire ...
-	X = multiplication(X, puissance(P, 1024));
+	X = multiplication(X, puissance(P, repete));
 
 	somme = 0; //au cas où X n'est pas strictement de masse 1.
 	for (int i(0); i < n; ++i)

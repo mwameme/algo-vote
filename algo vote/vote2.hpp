@@ -10,6 +10,7 @@
 #include <utility>
 #include <tuple>
 
+
 std::vector<int> ordre_alea(int n);
 
 int compter_ordonne(std::vector<std::vector<int>> const& pref, std::vector<int> const& ordre, int debut);//compte le nombre de fois que "ordre" est bien ordonné. Parcourt les paires.
@@ -20,7 +21,7 @@ std::vector<std::vector<int>> compresser(std::vector<std::vector<int>> const& vo
 
 std::vector<std::vector<int>> compresser_2(std::vector<std::vector<int>> const& votes, int n); //idem, mais les listes de votes sont partiels.
 
-std::vector<double> vote(std::vector<std::vector<int>> const& pref, double epsilon); //une seule fois. Passe par la chaine de Markov
+std::vector<double> vote(std::vector<std::vector<int>> const& pref, double epsilon,int repete=1); //une seule fois. Passe par la chaine de Markov
 
 bool est_egal(double temp1, double temp2); // quasi-égal : 0.000001
 

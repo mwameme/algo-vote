@@ -16,7 +16,7 @@ int main()
 	srand(static_cast<unsigned>(time(0)));
 	int question = 1;
 
-	debut:
+debut:
 	int N = 20;
 	int n = 15;
 	double epsilon = 1.5;
@@ -25,20 +25,37 @@ int main()
 	vector<vector<int>> gen;
 	for (int i(0); i < N; ++i)
 		gen.push_back(ordre_alea(n));
-	vector<vector<int>> pref = compresser_2(gen,n);
+	vector<vector<int>> pref = compresser_2(gen, n);
 
-	pair<vector<pair<int,double>>,int> resultat_algo = algo_entier(gen, epsilon,n);
-	vector<int> resultat_algo_liste;
-	resultat_algo_liste.reserve(get<0>(resultat_algo).size());
-	for (int i(0); i < get<0>(resultat_algo).size(); ++i)
-		resultat_algo_liste.push_back(get<0>(get<0>(resultat_algo)[i]));
-	vector<int> resultat_0 = ordre_double(vote(pref, epsilon));
+	if (false) {
+		pair<vector<pair<int, double>>, int> resultat_algo = algo_entier(gen, epsilon, n);
+		vector<int> resultat_algo_liste;
+		resultat_algo_liste.reserve(get<0>(resultat_algo).size());
+		for (int i(0); i < get<0>(resultat_algo).size(); ++i)
+			resultat_algo_liste.push_back(get<0>(get<0>(resultat_algo)[i]));
+		vector<int> resultat_0 = ordre_double(vote(pref, epsilon));
 
-	cout << "compter ordonne : rec    : " << compter_ordonne(pref, resultat_algo_liste,debut_test) << endl;
-	cout << "compter ordonne : 0      : " << compter_ordonne(pref, resultat_0,debut_test) << endl;
-	cout << "nombre preferences rec>0 : " << comparer_listes(pref, resultat_algo_liste, resultat_0, debut_test) << endl;
-	cout << " \t " << endl;
+		cout << "compter ordonne : rec    : " << compter_ordonne(pref, resultat_algo_liste, debut_test) << endl;
+		cout << "compter ordonne : 0      : " << compter_ordonne(pref, resultat_0, debut_test) << endl;
+		cout << "nombre preferences rec>0 : " << comparer_listes(pref, resultat_algo_liste, resultat_0, debut_test) << endl;
+		cout << " \t " << endl;
+	}
+	if (true) {
+		vector<int> resultat_0 = ordre_double(vote(pref, 1.5));
+		vector<int> resultat_1 = ordre_double(vote(pref, 0.05));
+		vector<int> resultat_2 = ordre_double(vote(pref, 0.05,4));
+		for (int i(0); i < resultat_0.size(); ++i)
+			cout << resultat_0[i] << " ; ";
+		cout << endl;
+		for (int i(0); i < resultat_1.size(); ++i)
+			cout << resultat_1[i] << " ; ";
+		cout << endl;
+		for (int i(0); i < resultat_2.size(); ++i)
+			cout << resultat_2[i] << " ; ";
+		cout << endl;
+		cout << endl;
 
+	}
 	--question;
 	if (question == 0) {
 		cin >> question;
